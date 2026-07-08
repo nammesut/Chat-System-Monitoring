@@ -1,4 +1,9 @@
-#include "server_utils.h"
+////////////////////////////////////////////////////////////////////////////////////////////////////                                                    
+///                                                 
+/// \file       APIC_ServerUtilities.h                               
+/// \breif      Overview: Server utility functions                                     
+///                                                 
+//////////////////////////////////////////////////////////////////////////////////////////////////// 
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -7,7 +12,9 @@
 #include <string.h>
 #include <unistd.h>
 
-clientInfo_t clients[MAX_CLIENTS];
+#include "../include/APIC_ServerUtilities.h"
+
+TYPS_ClientInfo clients[MAX_CLIENTS];
 int client_count = 0;    
 
 pthread_mutex_t client_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -16,30 +23,30 @@ pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 const char *log_path = "/home/haidoan2098/Workspace/Mini-Project_SysMonChat/log/server_messages.log";  
 
 
-void add_client(int sock_fd, const char *ip, int port, connection_status_t status) {
+void APIC_ServerUtilities::addClient(int sock_fd, const char *ip, int port, TYPE_ConnectionStatus status) {
     pthread_mutex_lock(&client_mutex);
 
     // Thêm mới nếu chưa đầy
     if (client_count < MAX_CLIENTS) {
-        clients[client_count].id = client_count;
-        clients[client_count].sock_fd = sock_fd;
-        strncpy(clients[client_count].ip, ip, INET_ADDRSTRLEN - 1);
-        clients[client_count].ip[INET_ADDRSTRLEN - 1] = '\0';
-        clients[client_count].port = port;   
-        clients[client_count].status = status;
+        clients[client_count].mi_ID = client_count;
+        clients[client_count].mi_SocketFD = sock_fd;
+        strncpy(clients[client_count].mc_IP, ip, INET_ADDRSTRLEN - 1);
+        clients[client_count].mc_IP[INET_ADDRSTRLEN - 1] = '\0';
+        clients[client_count].mi_Port = port;   
+        clients[client_count].me_Status = status;
         client_count++;
     } 
     else {
         // Tái sử dụng slot đã ngắt kết nối
         bool replaced = false;
         for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (clients[i].status == DISCONNECTED) {
-                clients[i].id = client_count;
-                clients[i].sock_fd = sock_fd;
-                strncpy(clients[i].ip, ip, INET_ADDRSTRLEN - 1);
-                clients[i].ip[INET_ADDRSTRLEN - 1] = '\0';
-                clients[i].port = port;   
-                clients[i].status = status;
+            if (clients[i].me_Status == TYPE_ConnectionStatus_Disconnected) {
+                clients[i].mi_ID = client_count;
+                clients[i].mi_SocketFD = sock_fd;
+                strncpy(clients[i].mc_IP, ip, INET_ADDRSTRLEN - 1);
+                clients[i].mc_IP[INET_ADDRSTRLEN - 1] = '\0';
+                clients[i].mi_Port = port;   
+                clients[i].me_Status = status;
                 replaced = true;
                 break;
             }
@@ -52,13 +59,13 @@ void add_client(int sock_fd, const char *ip, int port, connection_status_t statu
     pthread_mutex_unlock(&client_mutex);
 }
 
-void print_clients() {
+void APIC_ServerUtilities::displayClients() {
     pthread_mutex_lock(&client_mutex);
 
     printf("\n============= Current Clients List =============\n");
     for (int i = 0; i < client_count; i++) {
-        if (clients[i].status == CONNECTED) {
-            printf("ID: %d  |  IP: %s  | PORT: %d\n", i, clients[i].ip, clients[i].port);
+        if (clients[i].me_Status == TYPE_ConnectionStatus_Connected) {
+            printf("ID: %d  |  IP: %s  | PORT: %d\n", i, clients[i].mc_IP, clients[i].mi_Port);
         }
     }
     printf("================================================\n\n");
@@ -66,13 +73,13 @@ void print_clients() {
     pthread_mutex_unlock(&client_mutex);
 }
 
-void kill_client(int id_client) {
+void APIC_ServerUtilities::killClient(int id_client) {
     pthread_mutex_lock(&client_mutex);
 
-    if (id_client >= 0 && id_client < MAX_CLIENTS && clients[id_client].status == CONNECTED) {
-        send(clients[id_client].sock_fd, "__KILL__", strlen("__KILL__"), 0);     // Clinet nhận được cái này thì cút    
-        close(clients[id_client].sock_fd);
-        clients[id_client].status = DISCONNECTED;
+    if (id_client >= 0 && id_client < MAX_CLIENTS && clients[id_client].me_Status == TYPE_ConnectionStatus_Connected) {
+        send(clients[id_client].mi_SocketFD, "__KILL__", strlen("__KILL__"), 0);     // Clinet nhận được cái n�?y thì cút    
+        close(clients[id_client].mi_SocketFD);
+        clients[id_client].me_Status = TYPE_ConnectionStatus_Disconnected;
 
         printf("\nTerminated Client ID %d\n", id_client);
     } else {
@@ -82,7 +89,7 @@ void kill_client(int id_client) {
     pthread_mutex_unlock(&client_mutex);
 }
 
-void write_log(const char *msg) {
+void APIC_ServerUtilities::writeLog(const char *msg) {
     char buffer[BUF_SIZE];      
     int len = snprintf(buffer, sizeof(buffer), "%s", msg);
 
@@ -109,7 +116,7 @@ void write_log(const char *msg) {
     pthread_mutex_unlock(&log_mutex);
 }
 
-void read_log() {
+void APIC_ServerUtilities::readLog() {
     char buffer[BUF_SIZE];
     ssize_t n;
 

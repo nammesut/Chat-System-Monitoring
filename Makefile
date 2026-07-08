@@ -4,11 +4,13 @@ CFLAGS  = -Wall -Wextra -g -Iinc
 LDFLAGS = -pthread -lrt
 
 # Directories
-SRC_DIR     = src
-SERVER_DIR  = $(SRC_DIR)/server_app
-CLIENT_DIR  = $(SRC_DIR)/client_app
-DAEMON_DIR  = $(SRC_DIR)/monitor_daemon
-IPC_DIR     = $(SRC_DIR)/IPC
+SRC_DIR_DIVLIB     = divlib
+SRC_DIR_SYSTEM     = system
+
+SERVER_DIR  = $(SRC_DIR_DIVLIB)/server/src
+CLIENT_DIR  = $(SRC_DIR_DIVLIB)/client
+DAEMON_DIR  = $(SRC_DIR_SYSTEM)/sys/src
+IPC_DIR     = $(SRC_DIR_SYSTEM)/ipc
 BIN_DIR     = bin
 
 # Source files
@@ -52,4 +54,4 @@ $(DAEMON_TARGET): $(DAEMON_OBJS) | $(BIN_DIR)
 
 # Clean all
 clean:
-	rm -rf $(SRC_DIR)/*/*.o $(BIN_DIR)
+	rm -rf $(SERVER_DIR)/*.o $(CLIENT_DIR)/*.o $(DAEMON_DIR)/*.o $(IPC_DIR)/*.o $(BIN_DIR)
